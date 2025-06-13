@@ -1,14 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/app/lib/db";
-// import { getCurrentUserId } from "@/app/lib/auth"; // You need to implement this
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/authOptions";
 
-export async function POST(req: NextRequest, context: Promise<{ params: { postId: string } }>) {
-  const { params } = await context;
-  const { postId } = params;
+export async function POST(
+  req: NextRequest,
+  // The key change: params is now a Promise
+  { params }: { params: Promise<{ postId: string }> } // <-- Notice the Promise type
+) {
+  // Await the params object to get its resolved value
+  const { postId } = await params; // <-- AWAIT HERE
+
   const { action } = await req.json();
 
-  // TODO: Replace with your real user auth logic
-  const userId = await getCurrentUserId(req);
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -28,21 +36,18 @@ export async function POST(req: NextRequest, context: Promise<{ params: { postId
       await db.likedPost.deleteMany({
         where: { userId, postId },
       });
+    } else {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
     const likes = await db.likedPost.count({ where: { postId } });
-    const isLiked = !!(await db.likedPost.findUnique({ where: { userId_postId: { userId, postId } } }));
+    const isLiked = !!(await db.likedPost.findUnique({
+      where: { userId_postId: { userId, postId } },
+    }));
 
     return NextResponse.json({ likes, isLiked }, { status: 200 });
   } catch (error) {
     console.error("Error liking post:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
-
-// Dummy implementation for demonstration
-async function getCurrentUserId(req: NextRequest): Promise<string | null> {
-  // You must implement this using your auth/session logic
-  // For demo: return a hardcoded user id
-  return "demo-user-id";
 }

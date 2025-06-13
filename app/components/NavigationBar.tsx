@@ -4,7 +4,7 @@ import NavLink from "next/link";
 import { Lobster } from "next/font/google";
 import LogoutIcon from '@mui/icons-material/Logout';
 import { signOut, useSession } from 'next-auth/react'; // <-- import useSession
-
+import { Suspense } from "react";
 const lobster = Lobster({
   variable: "--font-lobster",
   subsets: ["latin"],
@@ -24,7 +24,9 @@ export function NavigationBar() {
         <li className="mx-2">Shop</li>
         <NavLink href="/notifications" className="mx-2">Notifications</NavLink>
         <li className="mx-2">Settings</li>
-        <Search placeholder="Find Users"/>
+      <Suspense fallback={<div>Loading search...</div>}>
+          <Search placeholder="Find Users"/>
+        </Suspense>
         {/* Display username if logged in */}
         {session?.user?.name && (
           <li className="mx-2 font-semibold text-gray-700">

@@ -1,5 +1,6 @@
 import { NavigationBar } from "../components/NavigationBar";
 import { Bebas_Neue } from "next/font/google";
+import { Suspense } from 'react'; // Import Suspense
 
 const bebasNeue = Bebas_Neue({
   variable: "--font-bebas-neue",
@@ -12,7 +13,10 @@ export default function Page() {
   const users = ["Bob", "Jim"];
   return (
     <div>
-      <NavigationBar />
+      {/* Wrap NavigationBar (or the component using useSearchParams) in Suspense */}
+      <Suspense fallback={<div>Loading navigation...</div>}> {/* Provide a fallback UI */}
+        <NavigationBar />
+      </Suspense>
       <h1 className={`${bebasNeue.className} text-2xl text-center mt-4`}>Chats</h1>
       <div className="flex">
         {/* Users Section */}

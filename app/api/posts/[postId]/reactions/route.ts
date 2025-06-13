@@ -3,8 +3,13 @@ import { db } from "@/app/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/authOptions"; // Adjust path if needed
 
-export async function GET(req: NextRequest, context: { params: { postId: string } }) {
-  const { postId } = context.params;
+export async function GET(
+  req: NextRequest,
+  // The key change: params is now a Promise in recent Next.js versions
+  { params }: { params: Promise<{ postId: string }> } // <-- Notice the Promise type
+) {
+  // Await the params object to get its resolved value
+  const { postId } = await params; // <-- AWAIT HERE
 
   // Get session using NextAuth inside the handler
   const session = await getServerSession(authOptions);

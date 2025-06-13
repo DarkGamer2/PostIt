@@ -1,11 +1,17 @@
-import { NextResponse,NextRequest } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { db } from '@/app/lib/db';
 
-export async function GET(req: NextRequest, context: { params: { username: string } }) {
-    
-    const username = context.params.username;
+export async function GET(
+  req: NextRequest,
+  // The key change: params is now a Promise in recent Next.js versions
+  { params }: { params: Promise<{ username: string }> } // <-- Notice the Promise type
+) {
+    // Await the params object to get its resolved value
+    const { username } = await params; // <-- AWAIT HERE
 
     if (!username) {
+        // This check might be redundant if the route ensures username is always present,
+        // but it's good for robustness.
         return NextResponse.json({ error: 'Username is required' }, { status: 400 });
     }
 
